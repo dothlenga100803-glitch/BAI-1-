@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bài 1: Hán Ngữ - Tổng Hợp Từ Vựng & Luyện Nghe</title>
+    <!-- Tải Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font chữ Inter & Noto Sans SC cho tiếng Trung -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+        .hanzi {
+            font-family: 'Noto Sans SC', sans-serif;
+        }
+        /* Hiệu ứng sóng âm khi đang đọc */
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            70% { transform: scale(1.25); opacity: 0; }
+            100% { transform: scale(0.95); opacity: 0; }
+        }
+        .speaking-ring::before {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border-radius: 9999px;
+            border: 2px solid #2563eb;
+            animation: pulse-ring 1.2s cubic-bezier(0.24, 0, 0.38, 1) infinite;
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <!-- Thanh điều hướng & Bộ chọn giọng đọc (giống hình mẫu) -->
+    <header class="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-slate-200 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-col md:flex-row items-center justify-between gap-3">
+            <!-- Tiêu đề -->
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white flex items-center justify-center font-bold text-xl hanzi shadow-md">
+                    汉
+                </div>
+                <div>
+                    <h1 class="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight">BÀI 1 - GIÁO TRÌNH HÁN NGỮ</h1>
+                    <p class="text-xs text-slate-500">Tổng hợp từ vựng chi tiết & Luyện nghe điền chữ Hán</p>
+                </div>
+            </div>
+
+            <!-- Bộ chọn giọng đọc (Theo hình mẫu 3) -->
+            <div class="flex flex-wrap items-center justify-center gap-2 sm:gap-3 w-full md:w-auto">
+                <div class="flex items-center bg-white border border-slate-300 rounded-full px-3.5 py-1.5 shadow-sm focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 transition w-full sm:w-auto">
+                    <i class="fa-solid fa-microphone text-slate-400 mr-2 text-sm"></i>
+                    <label for="voiceSelect" class="text-sm text-slate-500 mr-1.5 whitespace-nowrap">Giọng đọc:</label>
+                    <select id="voiceSelect" class="text-sm font-semibold text-slate-800 bg-transparent focus:outline-none cursor-pointer pr-2 w-full sm:w-auto">
+                        <option value="Aoede" selected>Nữ - Tự nhiên, truyền cảm (Aoede)</option>
+                        <option value="Kore">Nữ - Nhẹ nhàng, rõ ràng (Kore)</option>
+                        <option value="Charon">Nam - Trầm ấm, chuẩn xác (Charon)</option>
+                        <option value="Puck">Nam - Trẻ trung, năng động (Puck)</option>
+                        <option value="browser">Giọng trình duyệt (Web Speech zh-CN)</option>
+                    </select>
+                </div>
+
+                <!-- Tốc độ đọc -->
+                <div class="flex items-center bg-slate-100 rounded-full px-3 py-1.5 text-xs font-medium text-slate-600">
+                    <span class="mr-1.5">Tốc độ:</span>
+                    <select id="speedSelect" class="bg-transparent font-bold text-slate-800 focus:outline-none cursor-pointer">
+                        <option value="0.75">0.75x (Chậm)</option>
+                        <option value="1" selected>1.0x (Chuẩn)</option>
+                        <option value="1.15">1.15x (Nhanh)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs chuyển đổi trên Mobile / Tablet -->
+        <div class="lg:hidden border-t border-slate-100 bg-slate-50 px-4 py-2 flex gap-2">
+            <button id="tabVocabBtn" onclick="switchMobileTab('vocab')" class="flex-1 py-2 px-3 rounded-xl text-sm font-bold bg-blue-600 text-white shadow-sm transition">
+                <i class="fa-solid fa-book-open mr-1.5"></i>1. Tổng hợp từ vựng
+            </button>
+            <button id="tabExerciseBtn" onclick="switchMobileTab('exercise')" class="flex-1 py-2 px-3 rounded-xl text-sm font-bold bg-white text-slate-600 border border-slate-200 transition">
+                <i class="fa-solid fa-headphones mr-1.5"></i>2. Luyện bài tập nghe
+            </button>
+        </div>
+    </header>
+
+    <!-- Thông báo trạng thái âm thanh (Toast) -->
+    <div id="audioToast" class="fixed bottom-5 right-5 z-50 hidden items-center gap-2.5 bg-slate-900 text-white px-4 py-2.5 rounded-2xl shadow-xl text-sm font-medium transition-all">
+        <i class="fa-solid fa-circle-notch fa-spin text-blue-400"></i>
+        <span id="audioToastText">Đang tạo giọng đọc AI...</span>
+    </div>
+
+    <!-- Nội dung chính: Chia 2 cột song song trên màn hình lớn -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+            <!-- CỘT TRÁI (7/12): TỔNG HỢP TỪ VỰNG BÀI 1 -->
+            <section id="vocabSection" class="lg:col-span-7 space-y-4">
+                <!-- Thanh công cụ tìm kiếm & lọc -->
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                        <h2 class="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
+                            <span class="w-2.5 h-6 bg-blue-600 rounded-full inline-block"></span>
+                            Tổng Hợp Từ Vựng Bài 1
+                            <span id="vocabCountBadge" class="text-xs font-semibold bg-blue-50 text-blue-700 px-2.5 py-0.5 rounded-full border border-blue-200">16 từ</span>
+                        </h2>
+                        <p class="text-xs text-slate-500 mt-0.5">Trình bày theo thứ tự: Từ vựng • Hán - Việt • (Từ loại) • Nghĩa • Ví dụ</p>
+                    </div>
+                    <div class="relative w-full sm:w-56">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <input type="text" id="searchInput" oninput="filterVocab()" placeholder="Tìm chữ Hán, pinyin, nghĩa..." class="w-full pl-8 pr-3 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition">
+                    </div>
+                </div>
+
+                <!-- Danh sách thẻ từ vựng -->
+                <div id="vocabList" class="space-y-3">
+                    <!-- Nội dung sẽ được render bằng JS -->
+                </div>
+            </section>
+
+            <!-- CỘT PHẢI (5/12): LUYỆN BÀI TẬP NGHE (HÌNH THỨ 2) -->
+            <section id="exerciseSection" class="hidden lg:block lg:col-span-5 lg:sticky lg:top-20 space-y-4">
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <!-- Banner đầu mục bài tập -->
+                    <div class="bg-gradient-to-r from-blue-600 to-indigo-600 p-4 sm:p-5 text-white">
+                        <div class="flex items-center justify-between">
+                            <h2 class="text-base sm:text-lg font-bold flex items-center gap-2">
+                                <i class="fa-solid fa-headphones-simple"></i>
+                                Luyện Nghe & Điền Từ
+                            </h2>
+                            <span class="text-xs bg-white/20 backdrop-blur px-2.5 py-1 rounded-full font-semibold">Không Pinyin • Không gợi ý</span>
+                        </div>
+                        <p class="text-xs text-blue-100 mt-1.5 leading-relaxed">
+                            Bấm nút loa để nghe giọng đọc mô phỏng, sau đó gõ chính xác chữ Hán vào ô trống. Đáp án đúng chỉ hiển thị sau khi bấm <strong>Nộp bài</strong>.
+                        </p>
+                    </div>
+
+                    <!-- Bảng điểm sau khi nộp bài -->
+                    <div id="scoreSummary" class="hidden bg-emerald-50 border-b border-emerald-200 p-4 flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-semibold uppercase tracking-wider text-emerald-700">Kết quả bài làm</p>
+                            <p id="scoreText" class="text-xl font-extrabold text-emerald-900 mt-0.5">0 / 16 câu đúng</p>
+                        </div>
+                        <button onclick="resetExercise()" class="px-3.5 py-2 bg-white hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-xl text-xs font-bold shadow-sm transition cursor-pointer">
+                            <i class="fa-solid fa-rotate-right mr-1"></i>Làm lại
+                        </button>
+                    </div>
+
+                    <!-- Nội dung các phần bài tập theo Hình 2 -->
+                    <div id="exerciseContainer" class="p-4 sm:p-5 space-y-6 max-h-[68vh] overflow-y-auto">
+                        <!-- Render từ JS -->
+                    </div>
+
+                    <!-- Thanh nút bấm Nộp bài / Làm lại -->
+                    <div class="p-4 bg-slate-50 border-t border-slate-200 flex items-center gap-3">
+                        <button id="submitBtn" onclick="submitExercise()" class="flex-1 py-2.5 px-4 bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-bold text-sm rounded-xl shadow-md shadow-blue-600/20 transition flex items-center justify-center gap-2 cursor-pointer">
+                            <i class="fa-solid fa-paper-plane"></i>
+                            Nộp bài & Xem đáp án
+                        </button>
+                        <button onclick="resetExercise()" title="Xóa toàn bộ câu trả lời để làm lại" class="py-2.5 px-4 bg-white hover:bg-slate-100 text-slate-700 font-semibold text-sm rounded-xl border border-slate-300 transition cursor-pointer">
+                            Làm lại
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <script>
+        // ==========================================
+        // 1. DỮ LIỆU TỪ VỰNG BÀI 1 (TRÍCH XUẤT TỪ FILE PDF)
+        // Thứ tự chuẩn: Từ vựng - Pinyin - Hán Việt - (Từ loại) - Nghĩa - Ví dụ
+        // ==========================================
+        const vocabData = [
+            {
+                id: 1,
+                hanzi: "女",
+                pinyin: "nǚ",
+                hanViet: "NỮ",
+                pos: "Danh từ / Tính từ",
+                meaning: "Nữ, con gái, phụ nữ",
+                strokes: "3 nét • Bộ Nữ (女)",
+                exampleHanzi: "女人",
+                examplePinyin: "nǚrén",
+                exampleMeaning: "Phụ nữ, người con gái"
+            },
+            {
+                id: 2,
+                hanzi: "人",
+                pinyin: "rén",
+                hanViet: "NHÂN",
+                pos: "Danh từ",
+                meaning: "Người, con người",
+                strokes: "2 nét • Bộ Nhân (人)",
+                exampleHanzi: "好人 / 大人",
+                examplePinyin: "hǎorén / dàrén",
+                exampleMeaning: "Người tốt / Người lớn"
+            },
+            {
+                id: 3,
+                hanzi: "大",
+                pinyin: "dà",
+                hanViet: "ĐẠI",
+                pos: "Tính từ",
+                meaning: "To, lớn",
+                strokes: "3 nét • Bộ Đại (大)",
+                exampleHanzi: "不大不小",
+                examplePinyin: "bù dà bù xiǎo",
+                exampleMeaning: "Không lớn không nhỏ"
+            },
+            {
+                id: 4,
+                hanzi: "小",
+                pinyin: "xiǎo",
+                hanViet: "TIỂU",
+                pos: "Tính từ",
+                meaning: "Nhỏ, bé",
+                strokes: "3 nét • Bộ Tiểu (小)",
+                exampleHanzi: "大小",
+                examplePinyin: "dàxiǎo",
+                exampleMeaning: "Kích thước; lớn nhỏ"
+            },
+            {
+                id: 5,
+                hanzi: "你",
+                pinyin: "nǐ",
+                hanViet: "NHĨ",
+                pos: "Đại từ",
+                meaning: "Bạn, anh, chị, cậu (ngôi thứ 2 số ít)",
+                strokes: "7 nét • Bộ Nhân đứng (亻)",
+                exampleHanzi: "你好！",
+                examplePinyin: "Nǐ hǎo!",
+                exampleMeaning: "Xin chào bạn!"
+            },
+            {
+                id: 6,
+                hanzi: "心",
+                pinyin: "xīn",
+                hanViet: "TÂM",
+                pos: "Danh từ",
+                meaning: "Trái tim, lòng, tâm, tình cảm",
+                strokes: "4 nét • Bộ Tâm (心)",
+                exampleHanzi: "小心 / 关心",
+                examplePinyin: "xiǎoxīn / guānxīn",
+                exampleMeaning: "Cẩn thận / Quan tâm"
+            },
+            {
+                id: 7,
+                hanzi: "您",
+                pinyin: "nín",
+                hanViet: "NHĨN",
+                pos: "Đại từ",
+                meaning: "Ngài, ông, bà, anh, chị (cách gọi lịch sự, kính trọng)",
+                strokes: "11 nét • Bộ Tâm (心)",
+                exampleHanzi: "您好！",
+                examplePinyin: "Nín hǎo!",
+                exampleMeaning: "Xin chào ngài / ông / bà!"
+            },
+            {
+                id: 8,
+                hanzi: "我",
+                pinyin: "wǒ",
+                hanViet: "NGÃ",
+                pos: "Đại từ",
+                meaning: "Tôi, mình, tớ (ngôi thứ 1 số ít)",
+                strokes: "7 nét • Bộ Qua (戈)",
+                exampleHanzi: "我很好。",
+                examplePinyin: "Wǒ hěn hǎo.",
+                exampleMeaning: "Tôi rất khỏe."
+            },
+            {
+                id: 9,
+                hanzi: "子",
+                pinyin: "zǐ",
+                hanViet: "TỬ",
+                pos: "Danh từ / Hậu tố",
+                meaning: "Con, con cái; hậu tố cấu tạo danh từ",
+                strokes: "3 nét • Bộ Tử (子)",
+                exampleHanzi: "儿子 / 孩子",
+                examplePinyin: "érzi / háizi",
+                exampleMeaning: "Con trai / Trẻ em, con"
+            },
+            {
+                id: 10,
+                hanzi: "好",
+                pinyin: "hǎo",
+                hanViet: "HẢO",
+                pos: "Tính từ",
+                meaning: "Tốt, khỏe, đẹp, hay",
+                strokes: "6 nét • Bộ Nữ (女)",
+                exampleHanzi: "好人 / 很好",
+                examplePinyin: "hǎorén / hěn hǎo",
+                exampleMeaning: "Người tốt / Rất tốt, rất khỏe"
+            },
+            {
+                id: 11,
+                hanzi: "你好",
+                pinyin: "nǐ hǎo",
+                hanViet: "NHĨ HẢO",
+                pos: "Cụm từ chào hỏi",
+                meaning: "Xin chào, chào bạn",
+                strokes: "Ghép từ 你 + 好",
+                exampleHanzi: "你好吗？",
+                examplePinyin: "Nǐ hǎo ma?",
+                exampleMeaning: "Bạn có khỏe không?"
+            },
+            {
+                id: 12,
+                hanzi: "您好",
+                pinyin: "nín hǎo",
+                hanViet: "NHĨN HẢO",
+                pos: "Cụm từ chào hỏi",
+                meaning: "Xin chào ngài / ông / bà / thầy / cô (kính trọng)",
+                strokes: "Ghép từ 您 + 好",
+                exampleHanzi: "老师，您好！",
+                examplePinyin: "Lǎoshī, nín hǎo!",
+                exampleMeaning: "Thưa thầy/cô, em chào thầy/cô ạ!"
+            },
+            {
+                id: 13,
+                hanzi: "口",
+                pinyin: "kǒu",
+                hanViet: "KHẨU",
+                pos: "Danh từ / Lượng từ",
+                meaning: "Miệng, lời nói, nhân khẩu",
+                strokes: "3 nét • Bộ Khẩu (口)",
+                exampleHanzi: "人口 / 门口",
+                examplePinyin: "rénkǒu / ménkǒu",
+                exampleMeaning: "Dân số, nhân khẩu / Cửa ra vào"
+            },
+            {
+                id: 14,
+                hanzi: "马",
+                pinyin: "mǎ",
+                hanViet: "MÃ",
+                pos: "Danh từ",
+                meaning: "Con ngựa",
+                strokes: "3 nét • Bộ Mã (马)",
+                exampleHanzi: "白马",
+                examplePinyin: "báimǎ",
+                exampleMeaning: "Ngựa trắng (Bạch mã)"
+            },
+            {
+                id: 15,
+                hanzi: "白",
+                pinyin: "bái",
+                hanViet: "BẠCH",
+                pos: "Tính từ",
+                meaning: "Trắng, màu trắng",
+                strokes: "5 nét • Bộ Bạch (白)",
+                exampleHanzi: "白马",
+                examplePinyin: "báimǎ",
+                exampleMeaning: "Ngựa trắng"
+            },
+            {
+                id: 16,
+                hanzi: "吗",
+                pinyin: "ma",
+                hanViet: "MA",
+                pos: "Trợ từ ngữ khí",
+                meaning: "...không? ...à? (đặt cuối câu nghi vấn)",
+                strokes: "6 nét • Bộ Khẩu (口)",
+                exampleHanzi: "你好吗？",
+                examplePinyin: "Nǐ hǎo ma?",
+                exampleMeaning: "Bạn khỏe không?"
+            }
+        ];
+
+        // ==========================================
+        // 2. DỮ LIỆU BÀI TẬP NGHE THEO HÌNH THỨ 2
+        // Lưu ý: Không hiển thị Pinyin, không gợi ý, chỉ hiện đáp án sau khi nộp bài
+        // ==========================================
+        const exerciseSections = [
+            {
+                partTitle: "(1) Nghe từ & cụm từ (10 câu)",
+                items: [
+                    { id: "ex1_1", answer: "爸爸", speakText: "爸爸" },
+                    { id: "ex1_2", answer: "妈妈", speakText: "妈妈" },
+                    { id: "ex1_3", answer: "好吗", speakText: "好吗" },
+                    { id: "ex1_4", answer: "忙吗", speakText: "忙吗" },
+                    { id: "ex1_5", answer: "大吗", speakText: "大吗" },
+                    { id: "ex1_6", answer: "难吗", speakText: "难吗" },
+                    { id: "ex1_7", answer: "很好", speakText: "很好" },
+                    { id: "ex1_8", answer: "很忙", speakText: "很忙" },
+                    { id: "ex1_9", answer: "很大", speakText: "很大" },
+                    { id: "ex1_10", answer: "很难", speakText: "很难" }
+                ]
+            },
+            {
+                partTitle: "(2) Nghe hội thoại 1",
+                items: [
+                    { id: "ex2_a", label: "A:", answer: "你好吗？", speakText: "你好吗？" },
+                    { id: "ex2_b", label: "B:", answer: "很好。", speakText: "很好。" }
+                ]
+            },
+            {
+                partTitle: "(3) Nghe hội thoại 2",
+                items: [
+                    { id: "ex3_a", label: "A:", answer: "你忙吗？", speakText: "你忙吗？" },
+                    { id: "ex3_b", label: "B:", answer: "很忙。", speakText: "很忙。" }
+                ]
+            },
+            {
+                partTitle: "(4) Nghe hội thoại 3",
+                items: [
+                    { id: "ex4_a", label: "A:", answer: "汉语难吗？", speakText: "汉语难吗？" },
+                    { id: "ex4_b", label: "B:", answer: "汉语不难。", speakText: "汉语不难。" }
+                ]
+            }
+        ];
+
+        // ==========================================
+        // 3. HỆ THỐNG ĐỌC GIỌNG NÓI (GEMINI TTS + WEB SPEECH FALLBACK)
+        // ==========================================
+        const audioCache = new Map();
+        let currentAudio = null;
+        let currentPlayingBtn = null;
+
+        function showToast(text, show = true) {
+            const toast = document.getElementById('audioToast');
+            const toastText = document.getElementById('audioToastText');
+            if (!show) {
+                toast.classList.add('hidden');
+                toast.classList.remove('flex');
+                return;
+            }
+            toastText.textContent = text;
+            toast.classList.remove('hidden');
+            toast.classList.add('flex');
+        }
+
+        function setBtnPlaying(btn, isPlaying) {
+            if (currentPlayingBtn && currentPlayingBtn !== btn) {
+                currentPlayingBtn.classList.remove('speaking-ring', 'bg-blue-600', 'text-white');
+            }
+            if (!btn) return;
+            if (isPlaying) {
+                btn.classList.add('speaking-ring');
+                currentPlayingBtn = btn;
+            } else {
+                btn.classList.remove('speaking-ring');
+                if (currentPlayingBtn === btn) currentPlayingBtn = null;
+            }
+        }
+
+        function base64ToArrayBuffer(base64) {
+            const binaryString = window.atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
+        function pcmToWav(pcm16, sampleRate) {
+            const numChannels = 1;
+            const bytesPerSample = 2;
+            const blockAlign = numChannels * bytesPerSample;
+            const byteRate = sampleRate * blockAlign;
+            const dataSize = pcm16.length * bytesPerSample;
+            const buffer = new ArrayBuffer(44 + dataSize);
+            const view = new DataView(buffer);
+
+            const writeString = (offset, string) => {
+                for (let i = 0; i < string.length; i++) {
+                    view.setUint8(offset + i, string.charCodeAt(i));
+                }
+            };
+
+            writeString(0, 'RIFF');
+            view.setUint32(4, 36 + dataSize, true);
+            writeString(8, 'WAVE');
+            writeString(12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true);
+            view.setUint16(22, numChannels, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, byteRate, true);
+            view.setUint16(32, blockAlign, true);
+            view.setUint16(34, 16, true);
+            writeString(36, 'data');
+            view.setUint32(40, dataSize, true);
+
+            let offset = 44;
+            for (let i = 0; i < pcm16.length; i++, offset += 2) {
+                view.setInt16(offset, pcm16[i], true);
+            }
+
+            return new Blob([buffer], { type: 'audio/wav' });
+        }
+
+        async function fetchWithRetry(url, options, maxRetries = 3) {
+            let delay = 1000;
+            for (let attempt = 0; attempt <= maxRetries; attempt++) {
+                try {
+                    const response = await fetch(url, options);
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    return await response.json();
+                } catch (err) {
+                    if (attempt === maxRetries) throw err;
+                    await new Promise(res => setTimeout(res, delay));
+                    delay *= 2;
+                }
+            }
+        }
+
+        function speakWithBrowser(text, btn) {
+            if (!('speechSynthesis' in window)) {
+                showToast('Trình duyệt không hỗ trợ phát âm.', true);
+                setTimeout(() => showToast('', false), 2500);
+                return;
+            }
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'zh-CN';
+            utterance.rate = parseFloat(document.getElementById('speedSelect').value) || 1;
+
+            const voices = window.speechSynthesis.getVoices();
+            const zhVoice = voices.find(v => v.lang.includes('zh-CN')) || voices.find(v => v.lang.includes('zh'));
+            if (zhVoice) utterance.voice = zhVoice;
+
+            utterance.onstart = () => setBtnPlaying(btn, true);
+            utterance.onend = () => setBtnPlaying(btn, false);
+            utterance.onerror = () => setBtnPlaying(btn, false);
+
+            window.speechSynthesis.speak(utterance);
+        }
+
+        async function playChineseAudio(text, btn = null) {
+            const voiceName = document.getElementById('voiceSelect').value;
+            const playbackRate = parseFloat(document.getElementById('speedSelect').value) || 1;
+
+            // Dừng âm thanh hiện tại nếu có
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
+            }
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+            }
+
+            if (voiceName === 'browser') {
+                speakWithBrowser(text, btn);
+                return;
+            }
+
+            const cacheKey = `${voiceName}__${text}`;
+            if (audioCache.has(cacheKey)) {
+                const audioUrl = audioCache.get(cacheKey);
+                playUrl(audioUrl, playbackRate, btn);
+                return;
+            }
+
+            try {
+                setBtnPlaying(btn, true);
+                showToast(`Đang đọc "${text}" (${voiceName})...`, true);
+
+                const apiKey = "";
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
+                const payload = {
+                    contents: [{
+                        parts: [{ text: `Read clearly in standard Mandarin Chinese: ${text}` }]
+                    }],
+                    generationConfig: {
+                        responseModalities: ["AUDIO"],
+                        speechConfig: {
+                            voiceConfig: {
+                                prebuiltVoiceConfig: { voiceName: voiceName }
+                            }
+                        }
+                    },
+                    model: "gemini-2.5-flash-preview-tts"
+                };
+
+                const result = await fetchWithRetry(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const part = result?.candidates?.[0]?.content?.parts?.[0];
+                const audioData = part?.inlineData?.data;
+                const mimeType = part?.inlineData?.mimeType;
+
+                if (audioData && mimeType && mimeType.startsWith("audio/")) {
+                    const rateMatch = mimeType.match(/rate=(\d+)/);
+                    const sampleRate = rateMatch ? parseInt(rateMatch[1], 10) : 24000;
+                    const pcmData = base64ToArrayBuffer(audioData);
+                    const pcm16 = new Int16Array(pcmData);
+                    const wavBlob = pcmToWav(pcm16, sampleRate);
+                    const audioUrl = URL.createObjectURL(wavBlob);
+                    audioCache.set(cacheKey, audioUrl);
+                    showToast('', false);
+                    playUrl(audioUrl, playbackRate, btn);
+                } else {
+                    throw new Error("Không nhận được dữ liệu âm thanh");
+                }
+            } catch (error) {
+                // Tự động chuyển sang giọng trình duyệt nếu API không khả dụng
+                showToast('', false);
+                speakWithBrowser(text, btn);
+            }
+        }
+
+        function playUrl(url, rate, btn) {
+            const audio = new Audio(url);
+            audio.playbackRate = rate;
+            currentAudio = audio;
+            setBtnPlaying(btn, true);
+            audio.onended = () => setBtnPlaying(btn, false);
+            audio.onerror = () => setBtnPlaying(btn, false);
+            audio.play().catch(() => setBtnPlaying(btn, false));
+        }
+
+        // ==========================================
+        // 4. RENDER DANH SÁCH TỪ VỰNG
+        // Thứ tự: Từ vựng - Hán Việt - (Từ loại) - Nghĩa - Ví dụ
+        // ==========================================
+        function renderVocabList(items) {
+            const listEl = document.getElementById('vocabList');
+            const badgeEl = document.getElementById('vocabCountBadge');
+            badgeEl.textContent = `${items.length} từ`;
+
+            if (items.length === 0) {
+                listEl.innerHTML = `
+                    <div class="bg-white rounded-2xl border border-slate-200 p-8 text-center text-slate-500">
+                        <i class="fa-regular fa-face-frown text-2xl mb-2 text-slate-400"></i>
+                        <p class="text-sm font-medium">Không tìm thấy từ vựng phù hợp.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            listEl.innerHTML = items.map(item => `
+                <article class="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-sm hover:shadow-md hover:border-blue-300 transition-all group">
+                    <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                        <!-- Khối bên trái: STT + Chữ Hán + Pinyin + Nút loa -->
+                        <div class="flex items-center gap-3.5">
+                            <span class="w-7 h-7 rounded-lg bg-slate-100 text-slate-500 text-xs font-bold flex items-center justify-center shrink-0">
+                                ${item.id}
+                            </span>
+                            <div class="flex items-center gap-3">
+                                <div class="text-center min-w-[3.5rem] bg-blue-50/70 border border-blue-100 rounded-xl px-3 py-1.5">
+                                    <div class="hanzi text-2xl sm:text-3xl font-bold text-slate-900 leading-tight">${item.hanzi}</div>
+                                    <div class="text-xs font-semibold text-blue-600 mt-0.5">${item.pinyin}</div>
+                                </div>
+                                <button onclick="playChineseAudio('${item.hanzi}', this)" title="Nghe phát âm từ ${item.hanzi}" class="relative w-10 h-10 rounded-full bg-blue-50 hover:bg-blue-600 text-blue-600 hover:text-white flex items-center justify-center transition shadow-sm cursor-pointer shrink-0">
+                                    <i class="fa-solid fa-volume-high text-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Thông tin nét & bộ thủ -->
+                        <span class="text-[11px] font-medium text-slate-400 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100 self-start">
+                            ${item.strokes}
+                        </span>
+                    </div>
+
+                    <!-- Dòng thông tin chuẩn theo thứ tự: Hán - Việt - (Từ loại) - Nghĩa -->
+                    <div class="mt-3.5 pt-3 border-t border-slate-100 space-y-2">
+                        <div class="flex flex-wrap items-center gap-2 text-sm">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-extrabold bg-amber-50 text-amber-800 border border-amber-200 tracking-wide">
+                                Hán - Việt: ${item.hanViet}
+                            </span>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">
+                                (${item.pos})
+                            </span>
+                            <span class="text-slate-800 font-semibold">
+                                — ${item.meaning}
+                            </span>
+                        </div>
+
+                        <!-- Khối Ví dụ có nút nghe riêng -->
+                        <div class="bg-slate-50/90 hover:bg-slate-100/80 rounded-xl p-2.5 sm:px-3.5 flex items-center justify-between gap-2 border border-slate-200/60 transition">
+                            <div class="text-xs sm:text-sm">
+                                <span class="font-bold text-slate-500 mr-1.5">Ví dụ:</span>
+                                <span class="hanzi font-bold text-slate-900 text-sm sm:text-base">${item.exampleHanzi}</span>
+                                <span class="text-blue-600 font-medium mx-1.5">(${item.examplePinyin})</span>
+                                <span class="text-slate-600">: ${item.exampleMeaning}</span>
+                            </div>
+                            <button onclick="playChineseAudio('${item.exampleHanzi.replace(/\//g, '，')}', this)" title="Nghe câu ví dụ" class="relative w-8 h-8 rounded-full bg-white hover:bg-indigo-600 text-indigo-600 hover:text-white border border-slate-200 flex items-center justify-center transition shrink-0 cursor-pointer">
+                                <i class="fa-solid fa-play text-xs ml-0.5"></i>
+                            </button>
+                        </div>
+                    </div>
+                </article>
+            `).join('');
+        }
+
+        function filterVocab() {
+            const q = document.getElementById('searchInput').value.trim().toLowerCase();
+            if (!q) {
+                renderVocabList(vocabData);
+                return;
+            }
+            const filtered = vocabData.filter(item =>
+                item.hanzi.toLowerCase().includes(q) ||
+                item.pinyin.toLowerCase().includes(q) ||
+                item.hanViet.toLowerCase().includes(q) ||
+                item.meaning.toLowerCase().includes(q) ||
+                item.exampleHanzi.toLowerCase().includes(q)
+            );
+            renderVocabList(filtered);
+        }
+
+        // ==========================================
+        // 5. RENDER BÀI TẬP LUYỆN NGHE (HÌNH THỨ 2)
+        // Không pinyin, không từ gợi ý, chỉ hiện đáp án sau khi bấm Nộp bài
+        // ==========================================
+        function renderExercise() {
+            const container = document.getElementById('exerciseContainer');
+            container.innerHTML = exerciseSections.map((sec, sIdx) => {
+                // Phần (1) dạng lưới 2 cột gọn gàng như hình 2; Phần (2)(3)(4) dạng hội thoại A/B
+                const isGrid = sIdx === 0;
+                const itemsHtml = sec.items.map((item, idx) => `
+                    <div class="bg-slate-50 border border-slate-200/80 rounded-xl p-2.5 transition" id="card_${item.id}">
+                        <div class="flex items-center gap-2">
+                            ${item.label
+                                ? `<span class="text-xs font-extrabold text-indigo-700 w-5 shrink-0">${item.label}</span>`
+                                : `<span class="text-[11px] font-bold text-slate-400 w-5 shrink-0">${idx + 1}.</span>`
+                            }
+                            <button type="button" onclick="playChineseAudio('${item.speakText}', this)" title="Bấm để nghe âm thanh" class="relative w-8 h-8 rounded-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center shadow-sm transition shrink-0 cursor-pointer">
+                                <i class="fa-solid fa-volume-high text-xs"></i>
+                            </button>
+                            <input
+                                type="text"
+                                id="input_${item.id}"
+                                autocomplete="off"
+                                spellcheck="false"
+                                placeholder="Gõ chữ Hán..."
+                                class="hanzi w-full min-w-0 px-2.5 py-1.5 text-sm sm:text-base font-medium bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                            >
+                        </div>
+                        <!-- Vùng hiển thị đáp án đúng: Mặc định ẩn hoàn toàn cho tới khi bấm Nộp bài -->
+                        <div id="feedback_${item.id}" class="hidden mt-2 pt-1.5 border-t border-slate-200/80 text-xs flex items-center justify-between">
+                        </div>
+                    </div>
+                `).join('');
+
+                return `
+                    <div class="space-y-2.5">
+                        <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                            <span class="w-1.5 h-4 bg-indigo-500 rounded-full"></span>
+                            ${sec.partTitle}
+                        </h3>
+                        <div class="${isGrid ? 'grid grid-cols-1 sm:grid-cols-2 gap-2.5' : 'space-y-2'}">
+                            ${itemsHtml}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Chuẩn hóa chuỗi tiếng Trung khi chấm điểm (bỏ khoảng trắng và dấu câu cuối câu)
+        function normalizeChinese(str) {
+            return str
+                .trim()
+                .replace(/\s+/g, '')
+                .replace(/[？?。！!，,、．.]/g, '');
+        }
+
+        function submitExercise() {
+            let total = 0;
+            let correctCount = 0;
+
+            exerciseSections.forEach(sec => {
+                sec.items.forEach(item => {
+                    total++;
+                    const inputEl = document.getElementById(`input_${item.id}`);
+                    const cardEl = document.getElementById(`card_${item.id}`);
+                    const feedbackEl = document.getElementById(`feedback_${item.id}`);
+
+                    const userRaw = inputEl.value;
+                    const userNorm = normalizeChinese(userRaw);
+                    const ansNorm = normalizeChinese(item.answer);
+                    const isCorrect = userNorm.length > 0 && userNorm === ansNorm;
+
+                    inputEl.disabled = true;
+                    feedbackEl.classList.remove('hidden');
+
+                    if (isCorrect) {
+                        correctCount++;
+                        cardEl.classList.remove('bg-slate-50', 'border-slate-200/80');
+                        cardEl.classList.add('bg-emerald-50/70', 'border-emerald-300');
+                        inputEl.classList.add('border-emerald-500', 'text-emerald-900', 'bg-emerald-50');
+                        feedbackEl.innerHTML = `
+                            <span class="text-emerald-700 font-bold"><i class="fa-solid fa-circle-check mr-1"></i>Chính xác!</span>
+                            <span class="hanzi font-bold text-emerald-900 text-sm">${item.answer}</span>
+                        `;
+                    } else {
+                        cardEl.classList.remove('bg-slate-50', 'border-slate-200/80');
+                        cardEl.classList.add('bg-rose-50/70', 'border-rose-300');
+                        inputEl.classList.add('border-rose-400', 'text-rose-900', 'bg-rose-50');
+                        feedbackEl.innerHTML = `
+                            <span class="text-rose-600 font-bold"><i class="fa-solid fa-circle-xmark mr-1"></i>Đáp án đúng:</span>
+                            <span class="hanzi font-bold text-slate-900 text-sm bg-white px-2 py-0.5 rounded border border-rose-200">${item.answer}</span>
+                        `;
+                    }
+                });
+            });
+
+            // Hiển thị bảng tổng kết điểm
+            const summaryEl = document.getElementById('scoreSummary');
+            const scoreTextEl = document.getElementById('scoreText');
+            scoreTextEl.textContent = `${correctCount} / ${total} câu đúng (${Math.round((correctCount / total) * 100)}%)`;
+            summaryEl.classList.remove('hidden');
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+
+            // Cuộn lên đầu khung bài tập để xem điểm
+            document.getElementById('exerciseContainer').scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function resetExercise() {
+            document.getElementById('scoreSummary').classList.add('hidden');
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            renderExercise();
+        }
+
+        // Chuyển tab trên thiết bị di động
+        function switchMobileTab(tab) {
+            const vocabSec = document.getElementById('vocabSection');
+            const exSec = document.getElementById('exerciseSection');
+            const vocabBtn = document.getElementById('tabVocabBtn');
+            const exBtn = document.getElementById('tabExerciseBtn');
+
+            if (tab === 'vocab') {
+                vocabSec.classList.remove('hidden');
+                exSec.classList.add('hidden');
+                vocabBtn.className = 'flex-1 py-2 px-3 rounded-xl text-sm font-bold bg-blue-600 text-white shadow-sm transition';
+                exBtn.className = 'flex-1 py-2 px-3 rounded-xl text-sm font-bold bg-white text-slate-600 border border-slate-200 transition';
+            } else {
+                vocabSec.classList.add('hidden');
+                exSec.classList.remove('hidden');
+                exBtn.className = 'flex-1 py-2 px-3 rounded-xl text-sm font-bold bg-blue-600 text-white shadow-sm transition';
+                vocabBtn.className = 'flex-1 py-2 px-3 rounded-xl text-sm font-bold bg-white text-slate-600 border border-slate-200 transition';
+            }
+        }
+
+        // Khởi tạo giao diện khi tải trang
+        window.onload = function () {
+            renderVocabList(vocabData);
+            renderExercise();
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.getVoices();
+            }
+        };
+    </script>
+</body>
+</html>
